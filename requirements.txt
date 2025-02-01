@@ -2,8 +2,7 @@ jupyter
 neo4j
 py2neo
 pandas
-psycopg
-
 sentence-transformers 
 faiss-cpu 
 chromadb
+bertopic 

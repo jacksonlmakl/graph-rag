@@ -4,6 +4,8 @@ import numpy as np
 import chromadb
 import sentence_transformers
 from sentence_transformers import SentenceTransformer
+from itertools import combinations
+
 def create_embeddings():
     # Load BERT model (lightweight and efficient)
     model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -88,3 +90,47 @@ def search(query):
     else:
         print("\nNo results found within the similarity threshold.")
     return filtered_results
+
+def generate_pairs(strings):
+    """
+    Generates all possible 2-pair combinations from a list of strings.
+    
+    Args:
+        strings (list): List of strings.
+    
+    Returns:
+        list: List of tuple pairs.
+    """
+    return list(combinations(strings, 2))
+
+
+def compare_files(file1, file2):
+    """
+    Compares the embeddings of two .txt files stored in the FAISS vector database
+    and returns the distance between them.
+    """
+    # Load FAISS index and document names
+    faiss_index = faiss.read_index("vector_index.faiss")
+    doc_names = np.load("doc_names.npy", allow_pickle=True)
+
+    # Ensure files exist in the vector database
+    if file1 not in doc_names or file2 not in doc_names:
+        print(f"❌ One or both files not found in the vector database: {file1}, {file2}")
+        return None
+
+    # Get index positions of the files
+    index1 = int(np.where(doc_names == file1)[0][0])  # Convert to int
+    index2 = int(np.where(doc_names == file2)[0][0])  # Convert to int
+
+    # Extract embeddings for the two files
+    embedding1 = np.zeros((faiss_index.d,), dtype=np.float32)
+    embedding2 = np.zeros((faiss_index.d,), dtype=np.float32)
+
+    faiss_index.reconstruct(index1, embedding1)  # Correctly retrieve vector
+    faiss_index.reconstruct(index2, embedding2)
+
+    # Compute L2 (Euclidean) distance
+    distance = np.linalg.norm(embedding1 - embedding2)
+
+    print(f"✅ Distance between '{file1}' and '{file2}': {distance:.4f}")
+    return distance
