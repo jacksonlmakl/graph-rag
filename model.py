@@ -1,7 +1,7 @@
 from utils.graphdb import GraphDB
 from utils.textembeddings import create_embeddings, search, compare_files,generate_pairs
+from utils.topicmodel import extract_topics_bertopic
 import os
-from topicmodel import extract_topics_bertopic
 
 GRAPHDB_URI = "bolt://localhost:7687"
 GRAPHDB_AUTH = ("neo4j", "jackson123")
