@@ -1,0 +1,7 @@
+__pycache__
+env
+chromadb_store
+sandbox.ipynb
+doc_names.npy
+.ipynb_checkpoints
+vector_index.faiss
