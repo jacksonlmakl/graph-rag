@@ -1,8 +1,7 @@
-jupyter
-neo4j
-py2neo
 pandas
+neo4j
 sentence-transformers 
 faiss-cpu 
 chromadb
 bertopic 
+jupyter
