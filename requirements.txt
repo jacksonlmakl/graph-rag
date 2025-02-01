@@ -6,6 +6,4 @@ chromadb
 bertopic 
 transformers 
 torch 
-textblob 
 scikit-learn 
-nltk
