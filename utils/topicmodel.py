@@ -10,9 +10,9 @@ def extract_topics_bertopic(file1, file2):
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
     # Read text files
-    with open("files/"+file1, "r", encoding="utf-8") as f:
+    with open(file1, "r", encoding="utf-8") as f:
         text1 = f.read()
-    with open("files/"+file2, "r", encoding="utf-8") as f:
+    with open(file2, "r", encoding="utf-8") as f:
         text2 = f.read()
 
     # Combine both texts into a list for topic modeling
