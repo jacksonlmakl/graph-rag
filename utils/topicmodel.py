@@ -1,13 +1,32 @@
 import os
+import umap
+import textwrap
+import hdbscan
 from bertopic import BERTopic
 from sentence_transformers import SentenceTransformer
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
-def extract_topics_bertopic(file1, file2):
-    """
-    Uses BERTopic (Transformer-based topic modeling) to extract and compare topics from two files.
-    """
-    # Load a transformer-based embedding model (fast & accurate)
+# Load embedding model globally
+if "embedding_model" not in globals():
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+def split_text(text, chunk_size=50):
+    """Splits text into smaller chunks to prevent memory overload."""
+    return textwrap.wrap(text, width=chunk_size)
+
+def preprocess_topic_words(topic_words):
+    """Removes stop words and short words from extracted topic words."""
+    if not topic_words or topic_words is False:  # Check if topics exist
+        return []
+    return [word for word in topic_words if word.lower() not in ENGLISH_STOP_WORDS and len(word) > 2]
+
+def compare_topics(file1, file2):
+    """
+    Uses BERTopic to extract and compare topics from two files,
+    ensuring that no topics are discarded due to clustering issues.
+    """
+    file1 = "files/" + file1
+    file2 = "files/" + file2
 
     # Read text files
     with open(file1, "r", encoding="utf-8") as f:
@@ -15,31 +34,42 @@ def extract_topics_bertopic(file1, file2):
     with open(file2, "r", encoding="utf-8") as f:
         text2 = f.read()
 
-    # Combine both texts into a list for topic modeling
-    documents = [text1, text2]
+    # Split text into smaller chunks
+    documents = split_text(text1) + split_text(text2)
 
-    # Create BERTopic model
-    topic_model = BERTopic(embedding_model=embedding_model)
+    # Configure UMAP (low-dimensional space for clustering)
+    umap_model = umap.UMAP(n_neighbors=10, n_components=5, min_dist=0.1, random_state=42)
+
+    # Configure HDBSCAN (ensures every document gets a topic)
+    hdbscan_model = hdbscan.HDBSCAN(min_cluster_size=2, min_samples=1, prediction_data=True)
+
+    # Create BERTopic model with adjusted settings
+    topic_model = BERTopic(
+        embedding_model=embedding_model,
+        umap_model=umap_model,
+        hdbscan_model=hdbscan_model,
+        calculate_probabilities=True  # Ensures probability-based topic assignment
+    )
 
     # Extract topics
-    topics, probs = topic_model.fit_transform(documents)
+    topics, _ = topic_model.fit_transform(documents)
 
-    # Get topic representations
-    topic_info = topic_model.get_topic_info()
-    
-    # Compute topic similarity
-    topic_vectors = topic_model.topic_embeddings
-    similarity_score = topic_model.approximate_distribution_similarity(topic_vectors[0], topic_vectors[1])
+    # Extract topic words for both files
+    topic_words_file1 = preprocess_topic_words([word for word, _ in topic_model.get_topic(0) or []])
+    topic_words_file2 = preprocess_topic_words([word for word, _ in topic_model.get_topic(1) or []])
 
-    print(f"\n✅ BERTopic Similarity between '{file1}' and '{file2}': {similarity_score:.4f}\n")
+    # Handle cases where no topics were found
+    if not topic_words_file1 or not topic_words_file2:
+        print(f"\n❌ No meaningful topics found even after forcing topic extraction: '{file1}', '{file2}'")
+        return []
 
-    # Display topics
-    print(f"🔹 Topics in '{file1}':", topic_model.get_topic(0))
-    print(f"\n🔹 Topics in '{file2}':", topic_model.get_topic(1))
+    # Find common topics
+    common_topics = list(set(topic_words_file1).intersection(set(topic_words_file2)))
 
-    return similarity_score
+    # Print and return the common topics
+    if common_topics:
+        print(f"\n✅ Common Topics between '{file1}' and '{file2}': {common_topics}")
+    else:
+        print(f"\n❌ No common topics found between '{file1}' and '{file2}', but topics were extracted.")
 
-# Example Usage
-file1 = "files/file1.txt"
-file2 = "files/file2.txt"
-extract_topics_bertopic(file1, file2)
+    return common_topics

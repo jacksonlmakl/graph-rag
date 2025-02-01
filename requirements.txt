@@ -4,3 +4,8 @@ sentence-transformers
 faiss-cpu 
 chromadb
 bertopic 
+transformers 
+torch 
+textblob 
+scikit-learn 
+nltk
