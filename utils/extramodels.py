@@ -76,7 +76,7 @@ def contains_common_keywords(file1, file2, db,num_keywords=10):
 
     # Find common keywords
     common_keywords = top_keywords1.intersection(top_keywords2)
-    common_entities=[i for i in common_entities if len(i)>=3]
+    common_entities=[i for i in common_keywords if len(i)>=3]
     print(f"✅ COMMON KEYWORDS between '{file1}' and '{file2}': {common_keywords}")
     for i in common_keywords:
         db.create_node(i,"Keyword")

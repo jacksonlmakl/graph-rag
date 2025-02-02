@@ -20,7 +20,7 @@ def preprocess_topic_words(topic_words):
         return []
     return [word for word in topic_words if word.lower() not in ENGLISH_STOP_WORDS and len(word) > 2]
 
-def compare_topics(file1, file2):
+def compare_topics(file1, file2, db):
     """
     Uses BERTopic to extract and compare topics from two files,
     ensuring that no topics are discarded due to clustering issues.
@@ -69,6 +69,10 @@ def compare_topics(file1, file2):
     # Print and return the common topics
     if common_topics:
         print(f"\n✅ Common Topics between '{file1}' and '{file2}': {common_topics}")
+        for i in common_topics:
+            db.create_node(i,"Topic")
+            db.create_relationship(file2, i, "CONTAINS")
+            db.create_relationship(file1, i, "CONTAINS")
     else:
         print(f"\n❌ No common topics found between '{file1}' and '{file2}', but topics were extracted.")
 
