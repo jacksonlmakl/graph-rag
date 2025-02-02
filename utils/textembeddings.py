@@ -58,10 +58,13 @@ def create_embeddings():
     print("✅ Documents stored in ChromaDB successfully!")
 
 
-def search(query):
+def search(query,window):
     # Load FAISS index and document names
     faiss_index = faiss.read_index("vector_index.faiss")
-    doc_names = np.load("doc_names.npy", allow_pickle=True)
+    if not window:
+        doc_names = np.load("doc_names.npy", allow_pickle=True)
+    else:
+        doc_names=np.array(window)
     
     # Load BERT model
     model = SentenceTransformer("all-MiniLM-L6-v2")
