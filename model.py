@@ -9,7 +9,7 @@ GRAPHDB_URI = "bolt://localhost:7687"
 GRAPHDB_AUTH = ("neo4j", "jackson123")
 
 
-def process():
+def analyze():
     db = GraphDB(GRAPHDB_URI, GRAPHDB_AUTH)
     
     file_names=[i for i in os.listdir('files') if i.endswith(".txt")]
